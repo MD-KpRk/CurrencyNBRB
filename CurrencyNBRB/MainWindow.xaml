@@ -5,8 +5,27 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CurrencyNBRB"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" MinHeight="600" MinWidth="1000" WindowStartupLocation="CenterScreen">
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="60"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" Background="#660000" Orientation="Horizontal" Height="60">
+            <Image Source="/Resources/nbrbLogo.png"  Stretch="Fill" Margin="10 5 0 5" RenderOptions.BitmapScalingMode="HighQuality"/>
+        </StackPanel>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="340"/>
+                <ColumnDefinition Width="30*"/>
+            </Grid.ColumnDefinitions>
 
+            <StackPanel Grid.Column="0" Background="#eae2d1"/>
+
+            <Grid Grid.Column="1" Background="#ffffff">
+                
+            </Grid>
+
+        </Grid>
     </Grid>
 </Window>
