@@ -1,28 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.ObjectModel;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace CurrencyNBRB
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>//
     public partial class MainWindow : Window
     {
+        ObservableCollection<CurrencyControl> labels = new ObservableCollection<CurrencyControl>();
         public MainWindow()
         {
             InitializeComponent();
+            //DataContext = this;
+            myItems.ItemsSource = labels;
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+
+            
+            labels.Add(new CurrencyControl("CurrencyName"));
         }
     }
 }

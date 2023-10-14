@@ -12,18 +12,48 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0" Background="#660000" Orientation="Horizontal" Height="60">
-            <Image Source="/Resources/nbrbLogo.png"  Stretch="Fill" Margin="10 5 0 5" RenderOptions.BitmapScalingMode="HighQuality"/>
+            <Image Source="/Resources/nbrbLogo.png"  Stretch="Fill" Margin="10 3 0 5" RenderOptions.BitmapScalingMode="HighQuality"/>
+            <Rectangle Margin="8 8 0 8" Stroke="#ffdc92" Width="1" />
+            <TextBlock FontFamily="Times New Roman" Foreground="#ffdc92" VerticalAlignment="Center" Margin="10 0 0 0" FontSize="20">
+                Курсы валют
+                Национального <LineBreak/> Банка  Республики Беларусь
+            </TextBlock>
         </StackPanel>
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="1" Background="#eae2d1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="340"/>
+                <ColumnDefinition Width="190"/>
                 <ColumnDefinition Width="30*"/>
             </Grid.ColumnDefinitions>
 
-            <StackPanel Grid.Column="0" Background="#eae2d1"/>
+            <Grid x:Name="stack" Grid.Column="0" Margin="0 0 0 0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="60"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0">
+                    <TextBlock FontFamily="Open Sans" Foreground="#990133" VerticalAlignment="Top"  FontSize="20" TextAlignment="Center" FontWeight="SemiBold" Grid.Row="0" Margin="10 10 10 10">
+                    Выберите валюту
+                    </TextBlock>
+                    <Rectangle  Stroke="#990133" Height="1" Grid.Row="0" Margin="20 0 20 0"/>
+                </StackPanel>
+
+
+
+                <ScrollViewer x:Name="myScroll" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" Grid.Row="1" >
+                    <VirtualizingStackPanel x:Name="myVirtualStackPanel">
+                        <ItemsControl x:Name="myItems"  >
+
+                        </ItemsControl>
+                    </VirtualizingStackPanel>
+                </ScrollViewer>
+
+
+            </Grid>
 
             <Grid Grid.Column="1" Background="#ffffff">
-                
+                <Button Content="Button" HorizontalAlignment="Center" VerticalAlignment="Center" Height="131" Width="318" Click="Button_Click"/>
+
             </Grid>
 
         </Grid>
