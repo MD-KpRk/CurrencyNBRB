@@ -6,19 +6,63 @@
         xmlns:local="clr-namespace:CurrencyNBRB"
         mc:Ignorable="d"
         Title="MainWindow" MinHeight="600" MinWidth="1000" WindowStartupLocation="CenterScreen">
+
+    <Window.Resources>
+        <Style x:Key="ImageButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Margin" Value="8"/>
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Content">
+                <Setter.Value>
+                    <Image Source="/Resources/Refresh_icon_white.png" RenderOptions.BitmapScalingMode="HighQuality"/>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="Content">
+                        <Setter.Value>
+                            <Image Source="/Resources/Refresh_icon_black.png" RenderOptions.BitmapScalingMode="HighQuality" />
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+    
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="60"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <StackPanel Grid.Row="0" Background="#660000" Orientation="Horizontal" Height="60">
-            <Image Source="/Resources/nbrbLogo.png"  Stretch="Fill" Margin="10 3 0 5" RenderOptions.BitmapScalingMode="HighQuality"/>
-            <Rectangle Margin="8 8 0 8" Stroke="#ffdc92" Width="1" />
-            <TextBlock FontFamily="Times New Roman" Foreground="#ffdc92" VerticalAlignment="Center" Margin="10 0 0 0" FontSize="20">
+        <Grid Background="#660000">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="687*"/>
+                <ColumnDefinition Width="180"/>
+                <ColumnDefinition Width="60"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Height="60">
+                <Image Source="/Resources/nbrbLogo.png"  Stretch="Fill" Margin="10 3 0 5" RenderOptions.BitmapScalingMode="HighQuality"/>
+                <Rectangle Margin="8 8 0 8" Stroke="#ffdc92" Width="1" />
+                <TextBlock FontFamily="Times New Roman" Foreground="#ffdc92" VerticalAlignment="Center" Margin="10 0 0 0" FontSize="20">
                 Курсы валют
                 Национального <LineBreak/> Банка  Республики Беларусь
-            </TextBlock>
-        </StackPanel>
+                </TextBlock>
+            </StackPanel>
+
+            <Button Grid.Column="2" Style ="{StaticResource ImageButtonStyle}"/>
+        </Grid>
+
         <Grid Grid.Row="1" Background="#eae2d1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="190"/>
@@ -51,9 +95,13 @@
 
             </Grid>
 
-            <Grid Grid.Column="1" Background="#ffffff">
-                <Button Content="Button" HorizontalAlignment="Center" VerticalAlignment="Center" Height="131" Width="318" Click="Button_Click"/>
+            <Grid Grid.Column="1" Background="#F2F2F2">
 
+                <Grid Background="#ffffff" Margin="60 60 60 60">
+
+
+                    <!--I`M JUST TEST BUTTON--> <Button Content="Button" HorizontalAlignment="Center" VerticalAlignment="Top" Height="47" Width="318" Click="Button_Click" Margin="0,331,0,0"/>
+                </Grid>
             </Grid>
 
         </Grid>

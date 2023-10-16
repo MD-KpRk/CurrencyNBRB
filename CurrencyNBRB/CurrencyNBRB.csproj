@@ -9,10 +9,18 @@
 
   <ItemGroup>
     <None Remove="Resources\nbrbLogo.png" />
+    <None Remove="Resources\Refresh_icon_black.png" />
+    <None Remove="Resources\Refresh_icon_white.png" />
   </ItemGroup>
 
   <ItemGroup>
     <Resource Include="Resources\nbrbLogo.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\Refresh_icon_black.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\Refresh_icon_white.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>

@@ -6,16 +6,34 @@
              xmlns:local="clr-namespace:CurrencyNBRB"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <Style TargetType="{x:Type Button}" x:Key="BorderlessButton">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Foreground" Value="#990133"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+    </UserControl.Resources>
+    
+    
     <Grid   
         Margin="0 10 0 0"
         HorizontalAlignment="Center">
 
-        <TextBlock
-            Grid.Row="2"
-            Margin ="0,0,0,0"
-            FontSize="24"
-            TextAlignment="Center"
-            Text="{Binding Description}"/>
-        
+        <Button Style="{StaticResource BorderlessButton}" FontSize="24" Content="{Binding Description}" Click="Button_Click" >
+        </Button>
     </Grid>
 </UserControl>
