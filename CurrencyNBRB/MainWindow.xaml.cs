@@ -8,9 +8,8 @@ namespace CurrencyNBRB
 {
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
-        //ObservableCollection<CurrencyControl> labels = new ObservableCollection<CurrencyControl>();
-
         string updatedatetext = string.Empty;
+        string apiUrl = "https://api.nbrb.by/exrates/currencies";
         public event PropertyChangedEventHandler? PropertyChanged;
 
         public string UpdateDateText
