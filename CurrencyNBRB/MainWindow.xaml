@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CurrencyNBRB"
         mc:Ignorable="d"
-        Title="MainWindow" MinHeight="600" MinWidth="1000" WindowStartupLocation="CenterScreen">
+        Title="MainWindow" MinHeight="600" MinWidth="600" Height="600" Width="600" WindowStartupLocation="CenterScreen">
 
     <Window.Resources>
         <Style x:Key="ImageButtonStyle" TargetType="Button">
@@ -38,7 +38,7 @@
             </Style.Triggers>
         </Style>
     </Window.Resources>
-    
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="60"/>
@@ -46,7 +46,7 @@
         </Grid.RowDefinitions>
         <Grid Background="#660000">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="687*"/>
+                <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="180"/>
                 <ColumnDefinition Width="60"/>
             </Grid.ColumnDefinitions>
@@ -60,50 +60,17 @@
                 </TextBlock>
             </StackPanel>
 
-            <Button Grid.Column="2" Style ="{StaticResource ImageButtonStyle}"/>
+            <TextBlock Grid.Column="1" FontFamily="Times New Roman" Foreground="#FFA77300" TextAlignment="Center" VerticalAlignment="Center" FontSize="14"
+                       Text= "{Binding UpdateDateText}">
+            </TextBlock>
+            <Button Grid.Column="2" Style ="{StaticResource ImageButtonStyle}" Click="Button_Click_1"/>
+        </Grid>
+        <Grid Grid.Row="1" Background="#F2F2F2">
+
+            <Grid Background="#ffffff" Margin="20 20 20 20">
+                <Button Content="TESTButton" HorizontalAlignment="Center" VerticalAlignment="Top" Height="47" Width="318" Click="Button_Click" Margin="0,331,0,0"/>
+            </Grid>
         </Grid>
 
-        <Grid Grid.Row="1" Background="#eae2d1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="190"/>
-                <ColumnDefinition Width="30*"/>
-            </Grid.ColumnDefinitions>
-
-            <Grid x:Name="stack" Grid.Column="0" Margin="0 0 0 0">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="60"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-
-                <StackPanel Grid.Row="0">
-                    <TextBlock FontFamily="Open Sans" Foreground="#990133" VerticalAlignment="Top"  FontSize="20" TextAlignment="Center" FontWeight="SemiBold" Grid.Row="0" Margin="10 10 10 10">
-                    Выберите валюту
-                    </TextBlock>
-                    <Rectangle  Stroke="#990133" Height="1" Grid.Row="0" Margin="20 0 20 0"/>
-                </StackPanel>
-
-
-
-                <ScrollViewer x:Name="myScroll" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" Grid.Row="1" >
-                    <VirtualizingStackPanel x:Name="myVirtualStackPanel">
-                        <ItemsControl x:Name="myItems"  >
-
-                        </ItemsControl>
-                    </VirtualizingStackPanel>
-                </ScrollViewer>
-
-
-            </Grid>
-
-            <Grid Grid.Column="1" Background="#F2F2F2">
-
-                <Grid Background="#ffffff" Margin="60 60 60 60">
-
-
-                    <!--I`M JUST TEST BUTTON--> <Button Content="Button" HorizontalAlignment="Center" VerticalAlignment="Top" Height="47" Width="318" Click="Button_Click" Margin="0,331,0,0"/>
-                </Grid>
-            </Grid>
-
-        </Grid>
     </Grid>
 </Window>
