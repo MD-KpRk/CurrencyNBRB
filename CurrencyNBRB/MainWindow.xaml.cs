@@ -1,8 +1,19 @@
-﻿using System;
+﻿using CurrencyNBRB.Models;
+using System;
+using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows.Controls;
+using System.Text.RegularExpressions;
+using static System.Net.Mime.MediaTypeNames;
+using System.Globalization;
+using System.Diagnostics;
 
 namespace CurrencyNBRB
 {
@@ -11,6 +22,54 @@ namespace CurrencyNBRB
         string updatedatetext = string.Empty;
         string apiUrl = "https://api.nbrb.by/exrates/currencies";
         public event PropertyChangedEventHandler? PropertyChanged;
+        List<Currency>? currencies;
+
+
+        public string? leftboxstring;
+        public bool? leftstringcorrect;
+        public string? LeftBox
+        {
+            get { return this.leftboxstring; }
+            set
+            {
+                OnPropertyChanged("LeftBox");
+                leftboxstring = value;
+                try
+                {
+                    if (leftboxstring == Convert.ToDouble(value).ToString())
+                        leftstringcorrect = true;
+                    else
+                        leftstringcorrect = false;
+                }
+                catch
+                {
+                    leftstringcorrect = false;
+                }
+            }
+        }
+
+        public string? rightboxstring;
+        public bool? rightstringcorrect;
+        public string? RightBox
+        {
+            get { return this.rightboxstring; }
+            set
+            {
+                OnPropertyChanged("RightBox");
+                rightboxstring = value;
+                try
+                {
+                    if (rightboxstring == Convert.ToDouble(value).ToString())
+                        rightstringcorrect = true;
+                    else
+                        rightstringcorrect = false;
+                }
+                catch
+                {
+                    rightstringcorrect = false;
+                }
+            }
+        }
 
         public string UpdateDateText
         {
@@ -46,13 +105,32 @@ namespace CurrencyNBRB
 
         }
 
+
+
         public void Update()
         {
             DateTime dateTime= DateTime.Now;
             UpdateDateText = dateTime.ToShortDateString() + " " + dateTime.ToLongTimeString();
+            Task.Factory.StartNew(UpdateData);
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        public async Task UpdateData()
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                try
+                {
+                    string response = await client.GetStringAsync(apiUrl);
+                    JsonConvert.DeserializeObject<List<Currency>>(response);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Произошла ошибка: {ex.Message}");
+                }
+            }
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e) // CONVERT BUTTON
         {
             //test
         }
@@ -61,5 +139,20 @@ namespace CurrencyNBRB
         {
             Update();
         }
+
+        private void DecimalTextBox_PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
+        {
+            CultureInfo cultureInfo = CultureInfo.CurrentCulture;
+            string decimalSeparator = cultureInfo.NumberFormat.NumberDecimalSeparator;
+            string pattern = $@"^[0-9]*({Regex.Escape(decimalSeparator)}[0-9]*)?$";
+
+            TextBox textBox = (TextBox)sender;
+            string newText = textBox.Text.Insert(textBox.CaretIndex, e.Text);
+            if (!Regex.IsMatch(newText, pattern))
+            {
+                e.Handled = true;
+            }
+        }
+
     }
 }

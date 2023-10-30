@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CurrencyNBRB"
         mc:Ignorable="d"
-        Title="MainWindow" MinHeight="600" MinWidth="600" Height="600" Width="600" WindowStartupLocation="CenterScreen">
+        Title="Конвертер Валют НБРБ" MinHeight="600" MinWidth="600" Height="600" Width="600" WindowStartupLocation="CenterScreen">
 
     <Window.Resources>
         <Style x:Key="ImageButtonStyle" TargetType="Button">
@@ -68,7 +68,19 @@
         <Grid Grid.Row="1" Background="#F2F2F2">
 
             <Grid Background="#ffffff" Margin="20 20 20 20">
-                <Button Content="TESTButton" HorizontalAlignment="Center" VerticalAlignment="Top" Height="47" Width="318" Click="Button_Click" Margin="0,331,0,0"/>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="100"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBox Grid.Row="1" Grid.Column="0" Height="40" VerticalAlignment="Top" Margin="20 0 20 0" VerticalContentAlignment="Center" Padding="10 -4 10 0" TextBlock.FontSize="20" MaxLength="15"  Text="{Binding Path=LeftBox, UpdateSourceTrigger=PropertyChanged }" PreviewTextInput="DecimalTextBox_PreviewTextInput" />
+                <TextBox Grid.Row="1" Grid.Column="1" Height="40" VerticalAlignment="Top" Margin="20 0 20 0" VerticalContentAlignment="Center" Padding="10 -4 10 0" TextBlock.FontSize="20" MaxLength="15"  Text="{Binding Path=RightBox, UpdateSourceTrigger=PropertyChanged }" PreviewTextInput="DecimalTextBox_PreviewTextInput" />
+
+                <Button Content="Конвертировать" HorizontalAlignment="Left" VerticalAlignment="Top" Height="47" Width="318" Click="Button_Click" Margin="121,247,0,0" Grid.ColumnSpan="2" Grid.Row="1"/>
             </Grid>
         </Grid>
 
