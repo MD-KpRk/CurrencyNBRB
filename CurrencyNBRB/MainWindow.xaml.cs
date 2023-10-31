@@ -22,7 +22,9 @@ namespace CurrencyNBRB
         string updatedatetext = string.Empty;
         string apiUrl = "https://api.nbrb.by/exrates/currencies";
         public event PropertyChangedEventHandler? PropertyChanged;
-        List<Currency>? currencies;
+        DateTime dateTime;
+
+        public ObservableCollection<Currency>? Currencies;
 
 
         public string? leftboxstring;
@@ -109,7 +111,7 @@ namespace CurrencyNBRB
 
         public void Update()
         {
-            DateTime dateTime= DateTime.Now;
+            dateTime= DateTime.Now;
             UpdateDateText = dateTime.ToShortDateString() + " " + dateTime.ToLongTimeString();
             Task.Factory.StartNew(UpdateData);
         }
@@ -121,7 +123,10 @@ namespace CurrencyNBRB
                 try
                 {
                     string response = await client.GetStringAsync(apiUrl);
-                    JsonConvert.DeserializeObject<List<Currency>>(response);
+                    Currencies = new ObservableCollection<Currency>( JsonConvert.DeserializeObject<List<Currency>>(response)
+                        .Where(c => c.Cur_DateStart <= dateTime && (c.Cur_DateEnd == null || c.Cur_DateEnd >= dateTime))
+                        .OrderBy(c => c.Cur_Name).ToList());
+                    OnPropertyChanged("Currencies");
                 }
                 catch (Exception ex)
                 {
@@ -133,6 +138,7 @@ namespace CurrencyNBRB
         private void Button_Click(object sender, RoutedEventArgs e) // CONVERT BUTTON
         {
             //test
+                    MessageBox.Show(Currencies.Count().ToString());
         }
 
         private void Button_Click_1(object sender, RoutedEventArgs e) // Update Button
