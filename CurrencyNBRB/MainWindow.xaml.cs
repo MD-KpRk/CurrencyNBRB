@@ -14,6 +14,7 @@ using System.Text.RegularExpressions;
 using static System.Net.Mime.MediaTypeNames;
 using System.Globalization;
 using System.Diagnostics;
+using System.Runtime.ConstrainedExecution;
 
 namespace CurrencyNBRB
 {
@@ -24,11 +25,55 @@ namespace CurrencyNBRB
         public event PropertyChangedEventHandler? PropertyChanged;
         DateTime dateTime;
 
-        public ObservableCollection<Currency>? Currencies;
+
+        private ObservableCollection<Currency>? _Currencies;
+        public ObservableCollection<Currency>? Currencies
+        {
+            get { return _Currencies; }
+            set 
+            { 
+                _Currencies = value; 
+                OnPropertyChanged(nameof(Currencies));
+
+                if(_Currencies != null)
+                    SelectedCurrency = _Currencies.First();
+            }
+        }
+
+        public Rate? _CurrentRate;
+        public Rate? CurrentRate
+        {
+            get => _CurrentRate;
+            set
+            {
+                _CurrentRate = value;
+                OnPropertyChanged(nameof(CurrentRate));
+            }
+        }
 
 
-        public string? leftboxstring;
-        public bool? leftstringcorrect;
+
+
+        public Currency? _SelectedCurrency;
+        public Currency? SelectedCurrency
+        {
+            get => _SelectedCurrency;
+            set
+            {
+                _SelectedCurrency = value;
+                Task.Run(() => UpdateRate(value));
+                OnPropertyChanged("SelectedCurrency");
+
+            }
+        }
+
+
+
+
+
+
+        public string? leftboxstring = "1";
+        public bool leftstringcorrect = true;
         public string? LeftBox
         {
             get { return this.leftboxstring; }
@@ -57,7 +102,6 @@ namespace CurrencyNBRB
             get { return this.rightboxstring; }
             set
             {
-                OnPropertyChanged("RightBox");
                 rightboxstring = value;
                 try
                 {
@@ -70,8 +114,12 @@ namespace CurrencyNBRB
                 {
                     rightstringcorrect = false;
                 }
+                OnPropertyChanged("RightBox");
             }
         }
+
+
+
 
         public string UpdateDateText
         {
@@ -118,6 +166,7 @@ namespace CurrencyNBRB
 
         public async Task UpdateData()
         {
+            Currencies = null;
             using (HttpClient client = new HttpClient())
             {
                 try
@@ -126,7 +175,36 @@ namespace CurrencyNBRB
                     Currencies = new ObservableCollection<Currency>( JsonConvert.DeserializeObject<List<Currency>>(response)
                         .Where(c => c.Cur_DateStart <= dateTime && (c.Cur_DateEnd == null || c.Cur_DateEnd >= dateTime))
                         .OrderBy(c => c.Cur_Name).ToList());
-                    OnPropertyChanged("Currencies");
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Произошла ошибка: {ex.Message}");
+                }
+            }
+        }
+        public async Task UpdateRate(Currency? Cur)
+        {
+            if (Cur == null) return;
+            string apiUrl2 = "https://api.nbrb.by/exrates/rates/" + Cur.Cur_ID;
+            using (HttpClient client = new HttpClient())
+            {
+                try
+                {
+                    HttpResponseMessage response2 = await client.GetAsync(apiUrl2);
+                    if (response2.IsSuccessStatusCode)
+                    {
+                        string responseBody2 = await response2.Content.ReadAsStringAsync();
+                        CurrentRate = Newtonsoft.Json.JsonConvert.DeserializeObject<Rate>(responseBody2);
+
+                        //MessageBox.Show($" {CurrentRate.Cur_Scale} {CurrentRate.Cur_Abbreviation} = {CurrentRate.Cur_OfficialRate} белорусских рублей (BYN)" + 
+                        //    $"\n НОРМ ВИД:  {CurrentRate.Cur_Abbreviation} = {CurrentRate.Cur_OfficialRate/ CurrentRate.Cur_Scale} ВВЕДЕНО СЛЕВА " + Convert.ToDouble(LeftBox));
+
+                        RecalculateRate(CurrentRate);
+                    }
+                    else
+                    {
+                        MessageBox.Show($"Ошибка: {response2.StatusCode}");
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -135,10 +213,17 @@ namespace CurrencyNBRB
             }
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e) // CONVERT BUTTON
+        public void RecalculateRate(Rate? rate)
         {
-            //test
-                    MessageBox.Show(Currencies.Count().ToString());
+            if (CurrentRate == null ) return;
+            if (leftstringcorrect && rate != null && rate.Cur_OfficialRate != null)
+            {
+                double result = Math.Round(((double)rate.Cur_OfficialRate / rate.Cur_Scale * Convert.ToDouble(LeftBox)), 4);
+                RightBox = result.ToString();
+                OnPropertyChanged(nameof(RightBox));
+                //MessageBox.Show(RightBox);
+
+            }
         }
 
         private void Button_Click_1(object sender, RoutedEventArgs e) // Update Button
@@ -148,17 +233,28 @@ namespace CurrencyNBRB
 
         private void DecimalTextBox_PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
         {
-            CultureInfo cultureInfo = CultureInfo.CurrentCulture;
-            string decimalSeparator = cultureInfo.NumberFormat.NumberDecimalSeparator;
-            string pattern = $@"^[0-9]*({Regex.Escape(decimalSeparator)}[0-9]*)?$";
-
-            TextBox textBox = (TextBox)sender;
-            string newText = textBox.Text.Insert(textBox.CaretIndex, e.Text);
-            if (!Regex.IsMatch(newText, pattern))
+            try
             {
-                e.Handled = true;
+                CultureInfo cultureInfo = CultureInfo.CurrentCulture;
+                string decimalSeparator = cultureInfo.NumberFormat.NumberDecimalSeparator;
+                string pattern = $@"^[0-9]*({Regex.Escape(decimalSeparator)}[0-9]*)?$";
+
+                TextBox textBox = (TextBox)sender;
+                string newText = textBox.Text.Insert(textBox.CaretIndex, e.Text);
+                if (!Regex.IsMatch(newText, pattern))
+                {
+                    e.Handled = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Произошла ошибка: {ex.Message}");
             }
         }
 
+        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            RecalculateRate(CurrentRate);
+        }
     }
 }
