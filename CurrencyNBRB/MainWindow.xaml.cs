@@ -11,10 +11,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Text.RegularExpressions;
-using static System.Net.Mime.MediaTypeNames;
 using System.Globalization;
-using System.Diagnostics;
-using System.Runtime.ConstrainedExecution;
 
 namespace CurrencyNBRB
 {
@@ -23,8 +20,8 @@ namespace CurrencyNBRB
         string updatedatetext = string.Empty;
         string apiUrl = "https://api.nbrb.by/exrates/currencies";
         public event PropertyChangedEventHandler? PropertyChanged;
-        DateTime dateTime;
-
+        public int UpdateSecondCooldown = 10;
+        DateTime LastUpdateTime;
 
         private ObservableCollection<Currency>? _Currencies;
         public ObservableCollection<Currency>? Currencies
@@ -51,9 +48,6 @@ namespace CurrencyNBRB
             }
         }
 
-
-
-
         public Currency? _SelectedCurrency;
         public Currency? SelectedCurrency
         {
@@ -66,11 +60,6 @@ namespace CurrencyNBRB
 
             }
         }
-
-
-
-
-
 
         public string? leftboxstring = "1";
         public bool leftstringcorrect = true;
@@ -119,14 +108,9 @@ namespace CurrencyNBRB
         }
 
 
-
-
         public string UpdateDateText
         {
-            get
-            {
-                return "Последнее обновление" + "\n" + updatedatetext;
-            }
+            get => "Последнее обновление" + "\n" + updatedatetext;
             set
             {
                 updatedatetext = value;
@@ -137,30 +121,33 @@ namespace CurrencyNBRB
         {
             PropertyChangedEventHandler? handler = PropertyChanged;
             if (handler != null)
-            {
                 handler(this, new PropertyChangedEventArgs(info));
-            }
         }
 
         public MainWindow()
         {
             InitializeComponent();
             Init();
-            Update();
+            UpdateAll();
         }
 
         public void Init()
         {
             DataContext = this;
-
         }
 
-
-
-        public void Update()
+        public void UpdateAll()
         {
-            dateTime= DateTime.Now;
-            UpdateDateText = dateTime.ToShortDateString() + " " + dateTime.ToLongTimeString();
+            DateTime newDate = DateTime.Now;
+
+            TimeSpan timePassed = newDate - LastUpdateTime;
+            if (timePassed.TotalSeconds < UpdateSecondCooldown)
+            {
+                MessageBox.Show("Подождите "+ UpdateSecondCooldown + " секунд с момента прошлого обновления.\nОсталось: " + (int)(UpdateSecondCooldown - timePassed.TotalSeconds) + " секунд");
+                return;
+            }
+            LastUpdateTime = DateTime.Now;
+            UpdateDateText = LastUpdateTime.ToShortDateString() + " " + LastUpdateTime.ToLongTimeString();
             Task.Factory.StartNew(UpdateData);
         }
 
@@ -173,7 +160,7 @@ namespace CurrencyNBRB
                 {
                     string response = await client.GetStringAsync(apiUrl);
                     Currencies = new ObservableCollection<Currency>( JsonConvert.DeserializeObject<List<Currency>>(response)
-                        .Where(c => c.Cur_DateStart <= dateTime && (c.Cur_DateEnd == null || c.Cur_DateEnd >= dateTime))
+                        .Where(c => c.Cur_DateStart <= LastUpdateTime && (c.Cur_DateEnd == null || c.Cur_DateEnd >= LastUpdateTime))
                         .OrderBy(c => c.Cur_Name).ToList());
                 }
                 catch (Exception ex)
@@ -195,10 +182,6 @@ namespace CurrencyNBRB
                     {
                         string responseBody2 = await response2.Content.ReadAsStringAsync();
                         CurrentRate = Newtonsoft.Json.JsonConvert.DeserializeObject<Rate>(responseBody2);
-
-                        //MessageBox.Show($" {CurrentRate.Cur_Scale} {CurrentRate.Cur_Abbreviation} = {CurrentRate.Cur_OfficialRate} белорусских рублей (BYN)" + 
-                        //    $"\n НОРМ ВИД:  {CurrentRate.Cur_Abbreviation} = {CurrentRate.Cur_OfficialRate/ CurrentRate.Cur_Scale} ВВЕДЕНО СЛЕВА " + Convert.ToDouble(LeftBox));
-
                         RecalculateRate(CurrentRate);
                     }
                     else
@@ -221,14 +204,12 @@ namespace CurrencyNBRB
                 double result = Math.Round(((double)rate.Cur_OfficialRate / rate.Cur_Scale * Convert.ToDouble(LeftBox)), 4);
                 RightBox = result.ToString();
                 OnPropertyChanged(nameof(RightBox));
-                //MessageBox.Show(RightBox);
-
             }
         }
 
         private void Button_Click_1(object sender, RoutedEventArgs e) // Update Button
         {
-            Update();
+            UpdateAll();
         }
 
         private void DecimalTextBox_PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
