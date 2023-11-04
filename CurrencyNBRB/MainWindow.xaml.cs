@@ -22,7 +22,6 @@ namespace CurrencyNBRB
         public event PropertyChangedEventHandler? PropertyChanged;
         public int UpdateSecondCooldown = 10;
         DateTime LastUpdateTime;
-
         private ObservableCollection<Currency>? _Currencies;
         public ObservableCollection<Currency>? Currencies
         {
@@ -107,7 +106,6 @@ namespace CurrencyNBRB
             }
         }
 
-
         public string UpdateDateText
         {
             get => "Последнее обновление" + "\n" + updatedatetext;
@@ -139,7 +137,6 @@ namespace CurrencyNBRB
         public void UpdateAll()
         {
             DateTime newDate = DateTime.Now;
-
             TimeSpan timePassed = newDate - LastUpdateTime;
             if (timePassed.TotalSeconds < UpdateSecondCooldown)
             {
@@ -219,18 +216,12 @@ namespace CurrencyNBRB
                 CultureInfo cultureInfo = CultureInfo.CurrentCulture;
                 string decimalSeparator = cultureInfo.NumberFormat.NumberDecimalSeparator;
                 string pattern = $@"^[0-9]*({Regex.Escape(decimalSeparator)}[0-9]*)?$";
-
                 TextBox textBox = (TextBox)sender;
                 string newText = textBox.Text.Insert(textBox.CaretIndex, e.Text);
                 if (!Regex.IsMatch(newText, pattern))
-                {
                     e.Handled = true;
-                }
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Произошла ошибка: {ex.Message}");
-            }
+            catch (Exception ex) { MessageBox.Show($"Произошла ошибка: {ex.Message}"); }
         }
 
         private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
