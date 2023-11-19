@@ -1,125 +1,116 @@
 ﻿using CurrencyNBRB.Models;
-using System;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Net.Http;
-using System.Runtime.CompilerServices;
-using System.Windows;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using System.Text.RegularExpressions;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 
 namespace CurrencyNBRB
 {
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
-        string updatedatetext = string.Empty;
-        string apiUrl = "https://api.nbrb.by/exrates/currencies";
-        public event PropertyChangedEventHandler? PropertyChanged;
-        public int UpdateSecondCooldown = 10;
-        DateTime LastUpdateTime;
-        private ObservableCollection<Currency>? _Currencies;
-        public ObservableCollection<Currency>? Currencies
+        private const string CURRENCIES_URL = "https://api.nbrb.by/exrates/currencies";
+        private const string RATE_URL = "https://api.nbrb.by/exrates/rates/";
+        private const int UpdateSecondCooldown = 10;
+        private const int LeftBoxStartNumber = 1;
+
+        private DateTime lastUpdateTime;
+        private string? updateDateText = string.Empty;
+
+        private ObservableCollection<Currency> currencies = new ObservableCollection<Currency>();
+        
+        private Rate? currentRate;
+        private Currency? selectedCurrency;
+        
+        private string? leftBoxString = LeftBoxStartNumber.ToString();
+        private bool leftStringCorrect = true;
+        private string? rightBoxString;
+
+        public ObservableCollection<Currency> Currencies
         {
-            get { return _Currencies; }
-            set 
-            { 
-                _Currencies = value; 
+            get => currencies;
+            set
+            {
+                currencies = value ?? new ObservableCollection<Currency>();
                 OnPropertyChanged(nameof(Currencies));
 
-                if(_Currencies != null)
-                    SelectedCurrency = _Currencies.First();
+                if (currencies.Any())
+                    SelectedCurrency = currencies.First();
             }
         }
 
-        public Rate? _CurrentRate;
         public Rate? CurrentRate
         {
-            get => _CurrentRate;
+            get => currentRate;
             set
             {
-                _CurrentRate = value;
+                currentRate = value;
                 OnPropertyChanged(nameof(CurrentRate));
             }
         }
 
-        public Currency? _SelectedCurrency;
         public Currency? SelectedCurrency
         {
-            get => _SelectedCurrency;
+            get => selectedCurrency;
             set
             {
-                _SelectedCurrency = value;
+                selectedCurrency = value;
                 Task.Run(() => UpdateRate(value));
-                OnPropertyChanged("SelectedCurrency");
-
+                OnPropertyChanged(nameof(SelectedCurrency));
             }
         }
 
-        public string? leftboxstring = "1";
-        public bool leftstringcorrect = true;
         public string? LeftBox
         {
-            get { return this.leftboxstring; }
+            get => leftBoxString;
             set
             {
-                OnPropertyChanged("LeftBox");
-                leftboxstring = value;
+                OnPropertyChanged(nameof(LeftBox));
+                leftBoxString = value;
                 try
                 {
-                    if (leftboxstring == Convert.ToDouble(value).ToString())
-                        leftstringcorrect = true;
-                    else
-                        leftstringcorrect = false;
+                    leftStringCorrect = leftBoxString == Convert.ToDouble(value).ToString();
                 }
                 catch
                 {
-                    leftstringcorrect = false;
+                    leftStringCorrect = false;
                 }
             }
         }
 
-        public string? rightboxstring;
-        public bool? rightstringcorrect;
         public string? RightBox
         {
-            get { return this.rightboxstring; }
+            get => rightBoxString;
             set
             {
-                rightboxstring = value;
-                try
-                {
-                    if (rightboxstring == Convert.ToDouble(value).ToString())
-                        rightstringcorrect = true;
-                    else
-                        rightstringcorrect = false;
-                }
-                catch
-                {
-                    rightstringcorrect = false;
-                }
-                OnPropertyChanged("RightBox");
+                rightBoxString = value;
+                OnPropertyChanged(nameof(RightBox));
             }
         }
 
         public string UpdateDateText
         {
-            get => "Последнее обновление" + "\n" + updatedatetext;
+            get => "Последнее обновление" + "\n" + updateDateText;
             set
             {
-                updatedatetext = value;
-                OnPropertyChanged("UpdateDateText");
+                updateDateText = value;
+                OnPropertyChanged(nameof(UpdateDateText));
             }
         }
-        private void OnPropertyChanged(string info)
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
-            PropertyChangedEventHandler? handler = PropertyChanged;
-            if (handler != null)
-                handler(this, new PropertyChangedEventArgs(info));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         public MainWindow()
@@ -129,35 +120,36 @@ namespace CurrencyNBRB
             UpdateAll();
         }
 
-        public void Init()
+        private void Init()
         {
             DataContext = this;
         }
 
-        public void UpdateAll()
+        private void UpdateAll()
         {
             DateTime newDate = DateTime.Now;
-            TimeSpan timePassed = newDate - LastUpdateTime;
+            TimeSpan timePassed = newDate - lastUpdateTime;
             if (timePassed.TotalSeconds < UpdateSecondCooldown)
             {
-                MessageBox.Show("Подождите "+ UpdateSecondCooldown + " секунд с момента прошлого обновления.\nОсталось: " + (int)(UpdateSecondCooldown - timePassed.TotalSeconds) + " секунд");
+                MessageBox.Show($"Подождите {UpdateSecondCooldown} секунд с момента прошлого обновления.\nОсталось: {(int)(UpdateSecondCooldown - timePassed.TotalSeconds)} секунд");
                 return;
             }
-            LastUpdateTime = DateTime.Now;
-            UpdateDateText = LastUpdateTime.ToShortDateString() + " " + LastUpdateTime.ToLongTimeString();
+
+            lastUpdateTime = DateTime.Now;
+            UpdateDateText = $"{lastUpdateTime.ToShortDateString()} {lastUpdateTime.ToLongTimeString()}";
             Task.Factory.StartNew(UpdateData);
         }
 
-        public async Task UpdateData()
+        private async Task UpdateData()
         {
-            Currencies = null;
+            Currencies = new ObservableCollection<Currency>();
             using (HttpClient client = new HttpClient())
             {
                 try
                 {
-                    string response = await client.GetStringAsync(apiUrl);
-                    Currencies = new ObservableCollection<Currency>( JsonConvert.DeserializeObject<List<Currency>>(response)
-                        .Where(c => c.Cur_DateStart <= LastUpdateTime && (c.Cur_DateEnd == null || c.Cur_DateEnd >= LastUpdateTime))
+                    string response = await client.GetStringAsync(CURRENCIES_URL);
+                    Currencies = new ObservableCollection<Currency>(JsonConvert.DeserializeObject<List<Currency>>(response)
+                        .Where(c => c.Cur_DateStart <= lastUpdateTime && (c.Cur_DateEnd == null || c.Cur_DateEnd >= lastUpdateTime))
                         .OrderBy(c => c.Cur_Name).ToList());
                 }
                 catch (Exception ex)
@@ -166,10 +158,11 @@ namespace CurrencyNBRB
                 }
             }
         }
-        public async Task UpdateRate(Currency? Cur)
+
+        private async Task UpdateRate(Currency? cur)
         {
-            if (Cur == null) return;
-            string apiUrl2 = "https://api.nbrb.by/exrates/rates/" + Cur.Cur_ID;
+            if (cur == null) return;
+            string apiUrl2 = RATE_URL + cur.Cur_ID;
             using (HttpClient client = new HttpClient())
             {
                 try
@@ -178,7 +171,7 @@ namespace CurrencyNBRB
                     if (response2.IsSuccessStatusCode)
                     {
                         string responseBody2 = await response2.Content.ReadAsStringAsync();
-                        CurrentRate = Newtonsoft.Json.JsonConvert.DeserializeObject<Rate>(responseBody2);
+                        CurrentRate = JsonConvert.DeserializeObject<Rate>(responseBody2);
                         RecalculateRate(CurrentRate);
                     }
                     else
@@ -193,12 +186,12 @@ namespace CurrencyNBRB
             }
         }
 
-        public void RecalculateRate(Rate? rate)
+        private void RecalculateRate(Rate? rate)
         {
-            if (CurrentRate == null ) return;
-            if (leftstringcorrect && rate != null && rate.Cur_OfficialRate != null)
+            if (CurrentRate == null) return;
+            if (leftStringCorrect && rate != null && rate.Cur_OfficialRate != null)
             {
-                double result = Math.Round(((double)rate.Cur_OfficialRate / rate.Cur_Scale * Convert.ToDouble(LeftBox)), 4);
+                double result = Math.Round((rate.Cur_Scale * Convert.ToDouble(LeftBox) / (double)rate.Cur_OfficialRate), 4);
                 RightBox = result.ToString();
                 OnPropertyChanged(nameof(RightBox));
             }
@@ -213,15 +206,17 @@ namespace CurrencyNBRB
         {
             try
             {
-                CultureInfo cultureInfo = CultureInfo.CurrentCulture;
-                string decimalSeparator = cultureInfo.NumberFormat.NumberDecimalSeparator;
+                string decimalSeparator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
                 string pattern = $@"^[0-9]*({Regex.Escape(decimalSeparator)}[0-9]*)?$";
                 TextBox textBox = (TextBox)sender;
                 string newText = textBox.Text.Insert(textBox.CaretIndex, e.Text);
                 if (!Regex.IsMatch(newText, pattern))
                     e.Handled = true;
             }
-            catch (Exception ex) { MessageBox.Show($"Произошла ошибка: {ex.Message}"); }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Произошла ошибка: {ex.Message}");
+            }
         }
 
         private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
